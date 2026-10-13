@@ -1,0 +1,74 @@
+package com.cuenta.server.modules.auth.controller;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cuenta.server.global.api.Api;
+import com.cuenta.server.global.message.ResponseMessage;
+import com.cuenta.server.modules.auth.request.AuthRequest;
+import com.cuenta.server.modules.auth.request.ResetPasswordRequest;
+import com.cuenta.server.modules.auth.response.TokenResponse;
+import com.cuenta.server.modules.auth.service.AuthService;
+import com.cuenta.server.modules.user.request.CreateUserRequest;
+import com.cuenta.server.global.utils.CookieProvider;
+
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@RestController
+@RequestMapping("auth")
+@RequiredArgsConstructor
+public class AuthController {
+  private final AuthService authService;
+  private final CookieProvider cookieProvider;
+
+  @PostMapping("register")
+  public Api<Void> register(@Valid @RequestBody CreateUserRequest request) {
+    authService.register(request);
+    return Api.OK(ResponseMessage.VERIFICATION_EMAIL_SENT);
+  }
+
+  @PostMapping("verify")
+  public Api<Void> verify(@RequestBody Map<String, String> request) {
+    authService.verify(request);
+    return Api.OK(ResponseMessage.VERIFICATION_SUCCESS);
+  }
+
+  @PostMapping("login")
+  public Api<Void> login(@Valid @RequestBody AuthRequest request, HttpServletResponse response) {
+    TokenResponse tokens = authService.login(request);
+    cookieProvider.setCookies(response, tokens.getAccessToken(), tokens.getRefreshToken());
+    return Api.OK();
+  }
+
+  @PostMapping("reset-password/send")
+  public Api<Void> sendResetPasswordMail(@RequestBody Map<String, String> request) {
+    authService.sendResetPasswordMail(request);
+    return Api.OK(ResponseMessage.VERIFICATION_EMAIL_SENT);
+  }
+
+  @GetMapping("reset-password/verify")
+  public Api<Void> resetPasswordVerify(@RequestParam("token") String token) {
+    Map<String, String> request = new HashMap<>();
+    request.put("token", token);
+    request.put("type", "reset");
+    authService.verify(request);
+    return Api.OK(ResponseMessage.VERIFICATION_SUCCESS);
+  }
+
+  @PostMapping("reset-password")
+  public Api<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+    authService.resetPassword(request);
+    return Api.OK(ResponseMessage.PASSWORD_RESET_SUCCESS);
+  }
+}
