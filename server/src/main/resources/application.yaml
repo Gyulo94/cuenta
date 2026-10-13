@@ -14,7 +14,30 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
 
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
 server:
   port: 8000
   servlet:
     context-path: /api
+
+app:
+  app-name: ${APP_NAME}
+  app-logo: ${APP_LOGO}
+  env: ${APP_ENV}
+  jwt-secret-key: ${JWT_SECRET_KEY}
+  jwt-refresh-secret-key: ${JWT_REFRESH_SECRET_KEY}
+  jwt-expires-in: ${JWT_EXPIRES_IN}
+  jwt-refresh-expires-in: ${JWT_REFRESH_EXPIRES_IN}
+  client-url: ${CLIENT_URL}
+  email-url: ${EMAIL_URL}
+  sender-email: ${SENDER_EMAIL}
+  sender-pwd: ${SENDER_PWD}
