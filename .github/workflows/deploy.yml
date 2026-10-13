@@ -1,0 +1,236 @@
+name: Cuenta 서버
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cuenta-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 코드 체크아웃
+        uses: actions/checkout@v6
+
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v4
+
+      - name: Docker Hub 로그인
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 백엔드 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v7
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_PREFIX }}-server:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_PREFIX }}-server:latest
+          cache-from: type=gha,scope=${{ secrets.DOCKER_REPO_PREFIX }}-server
+          cache-to: type=gha,mode=max,scope=${{ secrets.DOCKER_REPO_PREFIX }}-server
+
+      - name: 프론트엔드 이미지 빌드 및 푸시
+        uses: docker/build-push-action@v7
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_PREFIX }}-client:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO_PREFIX }}-client:latest
+          cache-from: type=gha,scope=${{ secrets.DOCKER_REPO_PREFIX }}-client
+          cache-to: type=gha,mode=max,scope=${{ secrets.DOCKER_REPO_PREFIX }}-client
+
+      - name: 배포 파일 준비
+        env:
+          DEPLOY_ENV_FILE: ${{ secrets.ENV_FILE }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_REPO_PREFIX: ${{ secrets.DOCKER_REPO_PREFIX }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p deploy
+
+          cp docker-compose.yml deploy/docker-compose.yml
+
+          printf '%s\n' "$DEPLOY_ENV_FILE" > deploy/.env
+
+          {
+            printf '\nSERVER_IMAGE=%s/%s-server:%s\n' \
+              "$DOCKER_USERNAME" "$DOCKER_REPO_PREFIX" "$IMAGE_TAG"
+
+            printf 'CLIENT_IMAGE=%s/%s-client:%s\n' \
+              "$DOCKER_USERNAME" "$DOCKER_REPO_PREFIX" "$IMAGE_TAG"
+
+            printf 'SPRING_PROFILES_ACTIVE=prod\n'
+
+            printf 'DOCKER_REPO_PREFIX=%s\n' \
+              "$DOCKER_REPO_PREFIX"
+          } >> deploy/.env
+
+          chmod 600 deploy/.env
+
+      - name: Tailscale 연결
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ secrets.REMOTE_HOST }}
+
+      - name: SSH 연결 환경 설정
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          EXPECTED_FINGERPRINT: ${{ secrets.REMOTE_HOST_FINGERPRINT }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          # SSH 개인키 저장
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # 원격 서버의 ED25519 호스트 공개키 조회
+          ssh-keyscan \
+            -p "$REMOTE_PORT" \
+            -t ed25519 \
+            "$REMOTE_HOST" \
+            2>/dev/null > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+          # 호스트 키 Fingerprint 추출
+          ACTUAL_FINGERPRINT=$(
+            ssh-keygen -lf ~/.ssh/known_hosts -E sha256 \
+              | awk '{print $2}'
+          )
+
+          # 신뢰하는 서버의 Fingerprint와 비교
+          if [ "$ACTUAL_FINGERPRINT" != "$EXPECTED_FINGERPRINT" ]; then
+            echo "::error::SSH 호스트 키 Fingerprint 불일치"
+            exit 1
+          fi
+
+          echo "SSH 호스트 키 검증 성공"
+
+          # 개인키 형식 확인
+          ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null
+
+          echo "SSH 개인키 확인 완료"
+
+      - name: Compose 파일을 홈서버로 전송
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PROJECT_PATH: ${{ secrets.REMOTE_PROJECT_PATH }}
+        run: |
+          set -euo pipefail
+
+          # 배포 디렉터리 생성
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -p "$REMOTE_PORT" \
+            "$REMOTE_USER@$REMOTE_HOST" \
+            "mkdir -p '$REMOTE_PROJECT_PATH'"
+
+          # Docker Compose 및 환경변수 파일 전송
+          scp \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -P "$REMOTE_PORT" \
+            deploy/docker-compose.yml \
+            deploy/.env \
+            "$REMOTE_USER@$REMOTE_HOST:$REMOTE_PROJECT_PATH/"
+
+          echo "배포 파일 전송 완료"
+
+      - name: 홈서버 배포
+        env:
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_PROJECT_PATH: ${{ secrets.REMOTE_PROJECT_PATH }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          {
+            # 원격 셸 환경변수 설정
+            printf 'TARGET_DIR=%q\n' "$REMOTE_PROJECT_PATH"
+            printf 'DOCKER_USERNAME=%q\n' "$DOCKER_USERNAME"
+            printf 'DOCKER_PASSWORD=%q\n' "$DOCKER_PASSWORD"
+
+            # 원격 서버에서 실행할 명령어
+            cat <<'SCRIPT'
+          set -eu
+
+          cd "$TARGET_DIR"
+
+          # Nginx Docker 네트워크 확인
+          docker network inspect nginx_gyubuntu_net >/dev/null
+
+          # Docker Hub 로그인
+          printf '%s' "$DOCKER_PASSWORD" | docker login \
+            --username "$DOCKER_USERNAME" \
+            --password-stdin
+
+          # Docker Compose 설정 검증
+          docker compose config --quiet
+
+          # 최신 이미지 다운로드
+          docker compose pull
+
+          # 컨테이너 실행 및 상태 확인
+          docker compose up -d \
+            --remove-orphans \
+            --wait \
+            --wait-timeout 180
+
+          docker compose ps
+
+          # Nginx 설정 검증 및 재로드
+          docker exec nginx nginx -t
+          docker exec nginx nginx -s reload
+
+          echo "홈서버 Docker 배포 성공"
+          SCRIPT
+          } | ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -p "$REMOTE_PORT" \
+            "$REMOTE_USER@$REMOTE_HOST" \
+            'bash -se'
+
+      - name: 배포 완료
+        run: |
+          echo "Cuenta 프론트엔드와 백엔드 배포가 완료되었습니다."
