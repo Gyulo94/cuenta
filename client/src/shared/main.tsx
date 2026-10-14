@@ -2,10 +2,10 @@ import { createRoot } from "react-dom/client"
 
 import "./globals.css"
 import App from "./App.tsx"
-import { ThemeProvider } from "@/shared/components/theme-provider.tsx"
+import Providers from "./providers/index.tsx"
 
 createRoot(document.getElementById("root")!).render(
-    <ThemeProvider>
+     <Providers>
       <App />
-    </ThemeProvider>
+    </Providers>
 )

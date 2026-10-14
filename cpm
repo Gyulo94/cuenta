@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -eu
+
+PROJECT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+CLIENT_DIR="$PROJECT_DIR/client"
+COMPOSE_FILE="$PROJECT_DIR/docker-compose.dev.yml"
+
+if [ "$#" -eq 0 ]; then
+  echo "사용법: ./cpm <add|remove|install|update> [패키지...]" >&2
+  echo "예시: ./cpm add react-hook-form" >&2
+  exit 1
+fi
+
+case "$1" in
+  add|remove|rm|install|i|update|up)
+    ;;
+  *)
+    echo "지원하는 명령: add, remove, install, update" >&2
+    exit 1
+    ;;
+esac
+
+echo "[1/2] VSCode 의존성을 갱신합니다."
+(
+  cd "$CLIENT_DIR"
+  pnpm "$@"
+)
+
+if ! docker compose -f "$COMPOSE_FILE" ps --status running --quiet client | grep -q .; then
+  echo "[2/2] client 컨테이너가 꺼져 있어 내부 설치를 건너뜁니다."
+  echo "다음 컨테이너 시작 시 자동으로 설치됩니다."
+  exit 0
+fi
+
+echo "[2/2] client 컨테이너를 lockfile 기준으로 동기화합니다."
+docker compose -f "$COMPOSE_FILE" exec -T client pnpm install --frozen-lockfile
+
+echo "호스트와 client 컨테이너의 의존성 동기화가 완료되었습니다."

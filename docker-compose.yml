@@ -6,25 +6,8 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      DB_URL: ${DB_URL}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      APP_NAME: ${APP_NAME}
-      APP_LOGO: ${APP_LOGO}
-      APP_ENV: ${APP_ENV}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      JWT_REFRESH_SECRET_KEY: ${JWT_REFRESH_SECRET_KEY}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
-      CLIENT_URL: ${CLIENT_URL}
-      EMAIL_URL: ${EMAIL_URL}
-      SENDER_EMAIL: ${SENDER_EMAIL}
-      SENDER_PWD: ${SENDER_PWD}
+    env_file:
+      - .env
     ports:
       - "${SERVER_PORT}:8000"
     extra_hosts:
