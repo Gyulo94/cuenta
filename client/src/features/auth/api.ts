@@ -42,6 +42,16 @@ export async function login(values: z.infer<typeof LoginFormSchema>) {
 }
 
 /**
+ * 로그아웃 API
+ *
+ * @returns 서버 응답
+ */
+export async function logout() {
+  const response = await apiClient.post("/auth/logout")
+  return response.data
+}
+
+/**
  * 비밀번호 재설정 메일 발송 API
  *
  * @param email 재설정 메일을 받을 이메일

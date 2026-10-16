@@ -1,4 +1,5 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios"
+import { queryClient } from "@/shared/lib/query-client"
 
 export class ApiHttpError extends Error {
   statusCode?: number
@@ -32,6 +33,17 @@ export const apiClient = axios.create({
 })
 
 let refreshPromise: Promise<void> | null = null
+
+const PUBLIC_PATHS = ["/login", "/register", "/reset-password"]
+
+function redirectToLogin() {
+  const { pathname } = window.location
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+    return
+  }
+  queryClient.clear()
+  window.location.replace("/login")
+}
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -73,6 +85,7 @@ apiClient.interceptors.response.use(
       await refreshPromise
       return apiClient(originalRequest)
     } catch (refreshError) {
+      redirectToLogin()
       return Promise.reject(apiError(refreshError))
     }
   }

@@ -1,7 +1,8 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "react-router-dom"
 import {
   login,
+  logout,
   register,
   registerVerifyMail,
   resetPassword,
@@ -9,6 +10,7 @@ import {
   sendResetPasswordMail,
 } from "./api"
 import { toast } from "sonner"
+import { SESSION_QUERY_KEY } from "@/features/user/query"
 
 /**
  * 회원가입 훅
@@ -56,15 +58,35 @@ export function useRegisterVerifyMail() {
  */
 export function useLogin() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: SESSION_QUERY_KEY })
       navigate("/")
     },
     onError: (error) => {
       if (error instanceof Error) {
         toast.error(error.message)
       }
+    },
+  })
+  return mutation
+}
+
+/**
+ * 로그아웃 훅
+ *
+ * @returns 로그아웃 mutation
+ */
+export function useLogout() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    mutationFn: logout,
+    onSettled: () => {
+      queryClient.clear()
+      navigate("/login", { replace: true })
     },
   })
   return mutation
