@@ -5,32 +5,48 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import com.cuenta.server.global.constants.Constants;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
 public class CookieProvider {
+
   private final Constants constants;
 
+  public String getRefreshToken(HttpServletRequest request) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (constants.getCookieRefreshTokenName().equals(cookie.getName())) {
+          return cookie.getValue();
+        }
+      }
+    }
+    return null;
+  }
+
   public void setCookies(HttpServletResponse response, String accessToken, String refreshToken) {
-    ResponseCookie accessTokenCookie = ResponseCookie.from("_c_sys_id", accessToken)
+    response.addHeader(HttpHeaders.SET_COOKIE,
+        buildCookie(constants.getCookieAccessTokenName(), accessToken, constants.getJwtExpiresIn()).toString());
+    response.addHeader(HttpHeaders.SET_COOKIE,
+        buildCookie(constants.getCookieRefreshTokenName(), refreshToken, constants.getJwtRefreshExpiresIn()).toString());
+  }
+
+  public void clearCookies(HttpServletResponse response) {
+    response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(constants.getCookieAccessTokenName(), "", 0).toString());
+    response.addHeader(HttpHeaders.SET_COOKIE, buildCookie(constants.getCookieRefreshTokenName(), "", 0).toString());
+  }
+
+  private ResponseCookie buildCookie(String name, String value, long maxAge) {
+    return ResponseCookie.from(name, value)
         .httpOnly(true)
         .secure(true)
         .path("/")
-        .maxAge(constants.getJwtExpiresIn())
+        .maxAge(maxAge)
         .sameSite(constants.getEnv().equals("prod") ? "None" : "Lax")
         .build();
-
-    ResponseCookie refreshTokenCookie = ResponseCookie.from("_c_sys_rd", refreshToken)
-        .httpOnly(true)
-        .secure(true)
-        .path("/")
-        .maxAge(constants.getJwtRefreshExpiresIn())
-        .sameSite(constants.getEnv().equals("prod") ? "None" : "Lax")
-        .build();
-
-    response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
-    response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
   }
 }

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Component;
 import com.cuenta.server.global.constants.Constants;
@@ -36,6 +37,7 @@ public class JwtProvider {
 
     return Jwts.builder()
         .signWith(getSigningKey(constants.getJwtSecretKey()), SignatureAlgorithm.HS256)
+        .setId(UUID.randomUUID().toString())
         .setSubject(String.valueOf(payload.getId()))
         .setIssuedAt(Date.from(now))
         .setExpiration(expiredAt)
@@ -49,6 +51,7 @@ public class JwtProvider {
 
     return Jwts.builder()
         .signWith(getSigningKey(constants.getJwtRefreshSecretKey()), SignatureAlgorithm.HS256)
+        .setId(UUID.randomUUID().toString())
         .setSubject(String.valueOf(payload.getId()))
         .setIssuedAt(Date.from(now))
         .setExpiration(expiredAt)

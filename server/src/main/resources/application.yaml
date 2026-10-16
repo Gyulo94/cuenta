@@ -41,3 +41,5 @@ app:
   email-url: ${EMAIL_URL}
   sender-email: ${SENDER_EMAIL}
   sender-pwd: ${SENDER_PWD}
+  cookie-access-token-name: ${COOKIE_ACCESS_TOKEN_NAME}
+  cookie-refresh-token-name: ${COOKIE_REFRESH_TOKEN_NAME}

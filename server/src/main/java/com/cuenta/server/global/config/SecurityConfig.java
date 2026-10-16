@@ -2,6 +2,7 @@ package com.cuenta.server.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.cuenta.server.global.jwt.*;
+import com.cuenta.server.global.constants.Constants;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class SecurityConfig {
 
   private final ObjectMapper objectMapper;
   private final JwtProvider jwtProvider;
+  private final Constants constants;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,7 +44,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/**").permitAll()
             .anyRequest().authenticated())
-        .addFilterBefore(new JwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, constants), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(exception -> exception
             .authenticationEntryPoint(new JwtAuthenticationEntryPoint(objectMapper))
             .accessDeniedHandler(new JwtAccessDeniedHandler(objectMapper)));

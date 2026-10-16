@@ -13,6 +13,7 @@ import com.cuenta.server.modules.user.entity.User;
 import com.cuenta.server.modules.user.repository.UserQueryRepository;
 import com.cuenta.server.modules.user.repository.UserRepository;
 import com.cuenta.server.modules.user.request.CreateUserRequest;
+import com.cuenta.server.modules.user.response.UserResponse;
 import com.cuenta.server.redis.RedisKey;
 import com.cuenta.server.redis.service.RedisService;
 
@@ -63,6 +64,14 @@ public class UserService {
     userRepository.save(user);
 
     redis.del(redisKeyName);
+  }
+
+  public UserResponse getSession(long id) {
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+    UserResponse response = UserResponse.fromEntity(user);
+    return response;
   }
 
 }

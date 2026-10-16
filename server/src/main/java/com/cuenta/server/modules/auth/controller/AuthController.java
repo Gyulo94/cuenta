@@ -19,6 +19,7 @@ import com.cuenta.server.modules.auth.service.AuthService;
 import com.cuenta.server.modules.user.request.CreateUserRequest;
 import com.cuenta.server.global.utils.CookieProvider;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,5 +71,20 @@ public class AuthController {
   public Api<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
     authService.resetPassword(request);
     return Api.OK(ResponseMessage.PASSWORD_RESET_SUCCESS);
+  }
+
+  @PostMapping("refresh")
+  public Api<Void> refresh(HttpServletRequest request, HttpServletResponse response) {
+    String refreshToken = cookieProvider.getRefreshToken(request);
+    TokenResponse tokens = authService.refresh(refreshToken);
+    cookieProvider.setCookies(response, tokens.getAccessToken(), tokens.getRefreshToken());
+    return Api.OK();
+  }
+
+  @PostMapping("logout")
+  public Api<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    authService.logout(cookieProvider.getRefreshToken(request));
+    cookieProvider.clearCookies(response);
+    return Api.OK();
   }
 }

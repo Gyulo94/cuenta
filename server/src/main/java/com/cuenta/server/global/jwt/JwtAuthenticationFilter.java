@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.cuenta.server.global.constants.Constants;
 import com.cuenta.server.global.error.ErrorCode;
 import com.cuenta.server.global.exception.ApiException;
 
@@ -22,11 +22,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   private final JwtProvider jwtProvider;
+  private final Constants constants;
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    return request.getServletPath().startsWith("/auth/");
+  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -81,7 +86,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     for (Cookie cookie : cookies) {
-      if ("_c_sys_id".equals(cookie.getName())) {
+      if (constants.getCookieAccessTokenName().equals(cookie.getName())) {
         return cookie.getValue();
       }
     }

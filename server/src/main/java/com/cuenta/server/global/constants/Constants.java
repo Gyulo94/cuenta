@@ -21,4 +21,6 @@ public class Constants {
   private String emailUrl;
   private String senderEmail;
   private String senderPwd;
+  private String cookieAccessTokenName;
+  private String cookieRefreshTokenName;
 }
