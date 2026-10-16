@@ -18,7 +18,7 @@ export default function QueryProvider({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {import.meta.env.NODE_ENV !== "production" && (
+      {import.meta.env.DEV && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}
     </QueryClientProvider>
