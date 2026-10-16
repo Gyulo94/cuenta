@@ -14,6 +14,7 @@ import lombok.ToString;
 public final class UserPayload implements Payload {
   String email;
   String name;
+  @ToString.Exclude
   String password;
 
   @Override

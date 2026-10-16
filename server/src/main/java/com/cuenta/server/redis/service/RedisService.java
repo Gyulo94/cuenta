@@ -31,6 +31,14 @@ public class RedisService {
     redisTemplate.delete(key);
   }
 
+  public long increment(String key, long expiredTime) {
+    Long count = redisTemplate.opsForValue().increment(key);
+    if (count != null && count == 1L) {
+      redisTemplate.expire(key, expiredTime, TimeUnit.SECONDS);
+    }
+    return count == null ? 0L : count;
+  }
+
   public Boolean hasKey(String key) {
     return redisTemplate.hasKey(key);
   }

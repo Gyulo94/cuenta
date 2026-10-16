@@ -72,7 +72,7 @@ public class EmailService {
           .bodyToMono(Void.class)
           .block();
     } catch (Exception e) {
-      throw new ApiException(ErrorCode.SERVER_ERROR);
+      throw new ApiException(ErrorCode.SERVER_ERROR, e);
     }
   }
 }

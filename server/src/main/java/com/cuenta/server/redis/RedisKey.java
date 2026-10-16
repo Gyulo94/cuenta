@@ -26,6 +26,10 @@ public class RedisKey {
     return PREFIX + ":RT:" + userId;
   }
 
+  public String loginFailCount(String email) {
+    return PREFIX + ":login-fail:" + email.toLowerCase();
+  }
+
   public String cachedTokens(long userId) {
     return PREFIX + ":cached:" + userId;
   }

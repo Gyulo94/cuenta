@@ -22,6 +22,7 @@ public enum ErrorCode implements ErrorCodeInterface {
   INVALID_EMAIL_OR_PASSWORD(HttpStatus.UNAUTHORIZED.value(), "이메일 또는 비밀번호가 올바르지 않습니다."),
   VERIFICATION_FAILED(HttpStatus.UNAUTHORIZED.value(), "인증에 실패했습니다."),
   VERIFICATION_TOKEN_INVALID(HttpStatus.UNAUTHORIZED.value(), "인증 토큰이 유효하지 않습니다."),
+  TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS.value(), "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요."),
 
   // 유저 관련
   USER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "유저를 찾을 수 없습니다."),

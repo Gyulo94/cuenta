@@ -1,6 +1,5 @@
 package com.cuenta.server.modules.auth.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,12 +58,9 @@ public class AuthController {
   }
 
   @GetMapping("reset-password/verify")
-  public Api<Void> resetPasswordVerify(@RequestParam("token") String token) {
-    Map<String, String> request = new HashMap<>();
-    request.put("token", token);
-    request.put("type", "reset");
-    authService.verify(request);
-    return Api.OK(ResponseMessage.VERIFICATION_SUCCESS);
+  public Api<Map<String, String>> resetPasswordVerify(@RequestParam("token") String token) {
+    String email = authService.verifyResetToken(token);
+    return Api.OK(Map.of("email", email), ResponseMessage.VERIFICATION_SUCCESS);
   }
 
   @PostMapping("reset-password")

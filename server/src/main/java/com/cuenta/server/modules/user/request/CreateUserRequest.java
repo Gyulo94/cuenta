@@ -1,8 +1,10 @@
 package com.cuenta.server.modules.user.request;
 
+import com.cuenta.server.global.constants.PasswordPolicy;
 import com.cuenta.server.modules.user.entity.User;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,6 +27,8 @@ public class CreateUserRequest {
   private String name;
 
   @NotBlank()
+  @Pattern(regexp = PasswordPolicy.REGEX, message = PasswordPolicy.MESSAGE)
+  @ToString.Exclude
   private String password;
 
   public static User toEntity(CreateUserRequest request, String hashedPassword) {

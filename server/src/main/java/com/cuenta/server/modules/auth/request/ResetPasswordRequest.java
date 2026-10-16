@@ -1,6 +1,10 @@
 package com.cuenta.server.modules.auth.request;
 
+import com.cuenta.server.global.constants.PasswordPolicy;
+
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,12 +21,11 @@ import lombok.ToString;
 @Builder
 public class ResetPasswordRequest {
 
-  @NotBlank()
-  private String email;
-
-  @NotBlank()
+  @NotNull()
   private UUID token;
 
   @NotBlank()
+  @Pattern(regexp = PasswordPolicy.REGEX, message = PasswordPolicy.MESSAGE)
+  @ToString.Exclude
   private String newPassword;
 }

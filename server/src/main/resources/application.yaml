@@ -2,6 +2,9 @@ spring:
   application:
     name: cuenta
 
+  mvc:
+    log-resolved-exception: false
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}

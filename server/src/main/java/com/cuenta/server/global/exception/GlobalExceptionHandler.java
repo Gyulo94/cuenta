@@ -57,8 +57,7 @@ public class GlobalExceptionHandler {
 
     String errorMessage = allError.getDefaultMessage();
 
-    log.warn("유효성 검사 실패 - 메시지: {}",
-        errorMessage, e);
+    log.warn("유효성 검사 실패 - 메시지: {}", errorMessage);
 
     return ResponseEntity
         .badRequest()

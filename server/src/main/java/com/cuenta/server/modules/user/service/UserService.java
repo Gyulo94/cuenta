@@ -16,6 +16,8 @@ import com.cuenta.server.modules.user.request.CreateUserRequest;
 import com.cuenta.server.modules.user.response.UserResponse;
 import com.cuenta.server.redis.RedisKey;
 import com.cuenta.server.redis.service.RedisService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final RedisKey redisKey;
   private final RedisService redis;
+  private final ObjectMapper objectMapper;
 
   public Optional<User> findActiveByEmail(String email) {
     return userQueryRepository.findActiveByEmail(email);
@@ -40,9 +43,7 @@ public class UserService {
   }
 
   public void create(CreateUserRequest userData) {
-    String hashedPassword = passwordEncoder.encode(userData.getPassword());
-    log.info("Creating user with email: {}", userData.getEmail());
-    userRepository.save(CreateUserRequest.toEntity(userData, hashedPassword));
+    userRepository.save(CreateUserRequest.toEntity(userData, userData.getPassword()));
   }
 
   public void resetPassword(ResetPasswordRequest request) {
@@ -52,11 +53,10 @@ public class UserService {
     }
 
     String redisKeyName = redisKey.verificationReset(token);
-    if (redis.get(redisKeyName) == null) {
-      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
-    }
 
-    User user = userQueryRepository.findActiveByEmail(request.getEmail())
+    String email = getResetTokenEmail(token);
+
+    User user = userQueryRepository.findActiveByEmail(email)
         .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
 
     String hashedPassword = passwordEncoder.encode(request.getNewPassword());
@@ -64,6 +64,26 @@ public class UserService {
     userRepository.save(user);
 
     redis.del(redisKeyName);
+
+    redis.del(redisKey.userRefreshToken(user.getId()));
+  }
+
+  public String getResetTokenEmail(UUID token) {
+    String cachedPayload = redis.get(redisKey.verificationReset(token));
+    if (cachedPayload == null) {
+      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
+    }
+
+    String email;
+    try {
+      email = objectMapper.readTree(cachedPayload).path("email").asText(null);
+    } catch (JsonProcessingException e) {
+      throw new ApiException(ErrorCode.VERIFICATION_FAILED);
+    }
+    if (email == null) {
+      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
+    }
+    return email;
   }
 
   public UserResponse getSession(long id) {

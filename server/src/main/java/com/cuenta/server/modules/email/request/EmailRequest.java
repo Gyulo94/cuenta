@@ -15,6 +15,7 @@ public class EmailRequest {
   private String serviceName;
   private String logo;
   private String senderEmail;
+  @ToString.Exclude
   private String senderPwd;
   private String email;
   private String type;

@@ -31,6 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+  private static final long MAX_LOGIN_FAILURES = 5;
+  private static final long LOGIN_FAILURE_WINDOW_SECONDS = 15 * 60L;
+
   private final UserService userService;
   private final EmailService emailService;
   private final RedisService redis;
@@ -47,25 +50,34 @@ public class AuthService {
     UserPayload userRequest = new UserPayload();
     userRequest.setEmail(request.getEmail());
     userRequest.setName(request.getName());
-    userRequest.setPassword(request.getPassword());
+    userRequest.setPassword(passwordEncoder.encode(request.getPassword()));
 
     emailService.sendVerificationEmail("register", userRequest);
   }
 
   public void verify(Map<String, String> request) {
-    UUID token = UUID.fromString(request.get("token"));
+    UUID token = parseToken(request.get("token"));
     String type = request.get("type");
-    if (token == null) {
-      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
-    }
 
     if ("register".equals(type)) {
       verifyRegister(token);
-      return;
-    } else if ("reset".equals(type)) {
-      return;
     } else {
       throw new ApiException(ErrorCode.VERIFICATION_FAILED);
+    }
+  }
+
+  public String verifyResetToken(String token) {
+    return userService.getResetTokenEmail(parseToken(token));
+  }
+
+  private UUID parseToken(String token) {
+    if (token == null) {
+      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
+    }
+    try {
+      return UUID.fromString(token);
+    } catch (IllegalArgumentException e) {
+      throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
     }
   }
 
@@ -114,14 +126,20 @@ public class AuthService {
     String email = request.getEmail();
     String password = request.getPassword();
 
-    User user = userService.findActiveByEmail(email)
-        .orElseThrow(() -> new ApiException(ErrorCode.INVALID_EMAIL_OR_PASSWORD));
+    String failKey = redisKey.loginFailCount(email);
+    String failCount = redis.get(failKey);
+    if (failCount != null && Long.parseLong(failCount) >= MAX_LOGIN_FAILURES) {
+      throw new ApiException(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
+    }
 
-    if (passwordEncoder.matches(password, user.getPassword())) {
-      return user;
-    } else {
+    User user = userService.findActiveByEmail(email).orElse(null);
+    if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
+      redis.increment(failKey, LOGIN_FAILURE_WINDOW_SECONDS);
       throw new ApiException(ErrorCode.INVALID_EMAIL_OR_PASSWORD);
     }
+
+    redis.del(failKey);
+    return user;
   }
 
   private TokenResponse generateTokens(JwtPayload payload) {
@@ -133,15 +151,19 @@ public class AuthService {
 
   public void sendResetPasswordMail(Map<String, String> request) {
     String email = request.get("email");
-    String type = request.get("type");
+    if (email == null) {
+      return;
+    }
 
-    User user = userService.findActiveByEmail(email)
-        .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+    User user = userService.findActiveByEmail(email).orElse(null);
+    if (user == null) {
+      return;
+    }
 
     UserPayload userPayload = new UserPayload();
     userPayload.setEmail(user.getEmail());
 
-    emailService.sendVerificationEmail(type, userPayload);
+    emailService.sendVerificationEmail("reset", userPayload);
   }
 
   public void resetPassword(ResetPasswordRequest request) {
