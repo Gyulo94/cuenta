@@ -42,6 +42,12 @@ public class AuthService {
   private final RedisKey redisKey;
   private final JwtProvider jwtProvider;
 
+  /**
+   * 회원가입 (인증 메일 발송)
+   *
+   * @param request 회원가입 요청
+   * @throws ApiException 이미 가입된 이메일
+   */
   public void register(CreateUserRequest request) {
     if (userService.existsActiveByEmail(request.getEmail())) {
       throw new ApiException(ErrorCode.USER_ALREADY_EXISTS);
@@ -55,6 +61,12 @@ public class AuthService {
     emailService.sendVerificationEmail("register", userRequest);
   }
 
+  /**
+   * 회원가입 이메일 인증
+   *
+   * @param request 인증 토큰과 type
+   * @throws ApiException 토큰이 유효하지 않거나 type이 register가 아님
+   */
   public void verify(Map<String, String> request) {
     UUID token = parseToken(request.get("token"));
     String type = request.get("type");
@@ -66,10 +78,24 @@ public class AuthService {
     }
   }
 
+  /**
+   * 비밀번호 재설정 토큰 확인
+   *
+   * @param token 재설정 토큰
+   * @return 토큰 주인의 이메일
+   * @throws ApiException 토큰이 유효하지 않음
+   */
   public String verifyResetToken(String token) {
     return userService.getResetTokenEmail(parseToken(token));
   }
 
+  /**
+   * 토큰 문자열을 UUID로 변환
+   *
+   * @param token 토큰 문자열
+   * @return 토큰 UUID
+   * @throws ApiException 토큰이 없거나 UUID 형식이 아님
+   */
   private UUID parseToken(String token) {
     if (token == null) {
       throw new ApiException(ErrorCode.VERIFICATION_TOKEN_INVALID);
@@ -81,6 +107,12 @@ public class AuthService {
     }
   }
 
+  /**
+   * Redis에 저장된 가입 정보로 사용자 생성
+   *
+   * @param token 회원가입 인증 토큰
+   * @throws ApiException 토큰이 유효하지 않거나 이미 가입된 이메일
+   */
   private void verifyRegister(UUID token) {
     String REDIS_KEY = redisKey.verificationRegister(token);
     String cachedUserData = redis.get(REDIS_KEY);
@@ -104,6 +136,13 @@ public class AuthService {
     redis.del(REDIS_KEY);
   }
 
+  /**
+   * 로그인
+   *
+   * @param request 로그인 요청
+   * @return 액세스·리프레시 토큰
+   * @throws ApiException 이메일·비밀번호가 틀리거나 시도 횟수 초과
+   */
   public TokenResponse login(AuthRequest request) {
     User user = validateUser(request);
 
@@ -122,6 +161,13 @@ public class AuthService {
     return tokens;
   }
 
+  /**
+   * 이메일·비밀번호 확인 (실패 횟수 제한 포함)
+   *
+   * @param request 로그인 요청
+   * @return 로그인한 사용자
+   * @throws ApiException 이메일·비밀번호가 틀리거나 시도 횟수 초과
+   */
   private User validateUser(AuthRequest request) {
     String email = request.getEmail();
     String password = request.getPassword();
@@ -142,6 +188,12 @@ public class AuthService {
     return user;
   }
 
+  /**
+   * 액세스·리프레시 토큰 생성
+   *
+   * @param payload 토큰에 담을 사용자 정보
+   * @return 액세스·리프레시 토큰
+   */
   private TokenResponse generateTokens(JwtPayload payload) {
     String accessToken = jwtProvider.createAccessToken(payload);
     String refreshToken = jwtProvider.createRefreshToken(payload);
@@ -149,6 +201,11 @@ public class AuthService {
     return response;
   }
 
+  /**
+   * 비밀번호 재설정 메일 발송
+   *
+   * @param request 이메일
+   */
   public void sendResetPasswordMail(Map<String, String> request) {
     String email = request.get("email");
     if (email == null) {
@@ -166,10 +223,23 @@ public class AuthService {
     emailService.sendVerificationEmail("reset", userPayload);
   }
 
+  /**
+   * 비밀번호 재설정
+   *
+   * @param request 재설정 토큰과 새 비밀번호
+   * @throws ApiException 토큰이 유효하지 않음
+   */
   public void resetPassword(ResetPasswordRequest request) {
     userService.resetPassword(request);
   }
 
+  /**
+   * 토큰 재발급
+   *
+   * @param refreshToken 리프레시 토큰
+   * @return 새 액세스·리프레시 토큰
+   * @throws ApiException 리프레시 토큰이 유효하지 않음
+   */
   public TokenResponse refresh(String refreshToken) {
     if (refreshToken == null) {
       throw new ApiException(ErrorCode.INVALID_ACCESS_TOKEN);
@@ -197,6 +267,11 @@ public class AuthService {
     return tokens;
   }
 
+  /**
+   * 로그아웃 (리프레시 토큰 삭제)
+   *
+   * @param refreshToken 리프레시 토큰
+   */
   public void logout(String refreshToken) {
     if (refreshToken == null) {
       return;
