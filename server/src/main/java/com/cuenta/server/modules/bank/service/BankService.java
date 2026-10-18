@@ -17,6 +17,11 @@ public class BankService {
 
   private final BankRepository bankRepository;
 
+  /**
+   * 모든 활성 은행 조회
+   *
+   * @return 활성 은행 목록
+   */
   public List<BankResponse> getBanks() {
     List<Bank> banks = bankRepository.findAllByIsActiveTrue();
     List<BankResponse> bankResponses = banks.stream()
