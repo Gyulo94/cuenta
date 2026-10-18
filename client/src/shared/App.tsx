@@ -10,6 +10,7 @@ import { DashboardPage, MainPage, NotFoundPage } from "@/shared/pages"
 import PublicRoute from "@/shared/routes/public-route"
 import PrivateRoute from "./routes/private-route"
 import AppLayout from "@/shared/layouts/app-layout"
+import AccountsPage from "@/features/account/pages/accounts"
 
 export function App() {
   return (
@@ -29,6 +30,7 @@ export function App() {
       <Route element={<PrivateRoute />}>
         <Route element={<AppLayout />}>
           <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="accounts" element={<AccountsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
