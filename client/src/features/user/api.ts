@@ -6,6 +6,6 @@ import type { Session } from "@/features/user/type"
  * @returns 로그인한 사용자 정보
  */
 export async function getSession(): Promise<Session> {
-  const response = await apiClient.get("/user/session")
+  const response = await apiClient.get("/users/session")
   return response.data.body
 }
