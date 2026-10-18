@@ -10,7 +10,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.List;
+import com.cuenta.server.modules.account.entity.Account;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,6 +53,9 @@ public class User {
 
   @Column(name = "deleted_at", nullable = true)
   private LocalDateTime deletedAt;
+
+  @OneToMany(mappedBy = "user")
+  private List<Account> accounts;
 
   public void setPassword(String password) {
     this.password = password;
