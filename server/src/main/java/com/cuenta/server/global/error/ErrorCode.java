@@ -37,6 +37,14 @@ public enum ErrorCode implements ErrorCodeInterface {
   CASH_WALLET_NOT_CREATABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 직접 추가할 수 없습니다."),
   CASH_WALLET_NOT_UPDATABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 수정할 수 없습니다."),
   CASH_WALLET_NOT_DELETABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 삭제할 수 없습니다."),
+  ACCOUNT_HAS_CARDS(HttpStatus.BAD_REQUEST.value(), "연결된 카드가 있는 계좌는 삭제할 수 없습니다."),
+
+  // 카드 관련
+  CARD_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "해당 카드를 찾을 수 없습니다."),
+  CARD_ISSUER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "해당 카드사를 찾을 수 없습니다."),
+  CARD_ACCOUNT_NOT_PAYABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 결제 계좌로 연결할 수 없습니다."),
+  CARD_ACCOUNT_BANK_MISMATCH(HttpStatus.BAD_REQUEST.value(), "체크카드는 카드사와 같은 은행 계좌만 연결할 수 있습니다."),
+  PAYMENT_DUE_DAY_REQUIRED(HttpStatus.BAD_REQUEST.value(), "신용카드는 결제일을 입력하세요."),
   ;
 
   private final Integer httpStatusCode;

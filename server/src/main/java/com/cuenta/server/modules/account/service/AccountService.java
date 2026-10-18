@@ -7,6 +7,8 @@ import com.cuenta.server.global.exception.ApiException;
 import com.cuenta.server.global.error.ErrorCode;
 import com.cuenta.server.modules.account.entity.Account;
 import com.cuenta.server.modules.account.repository.AccountRepository;
+import com.cuenta.server.modules.card.entity.Card;
+import com.cuenta.server.modules.card.repository.CardRepository;
 import com.cuenta.server.modules.user.entity.User;
 import com.cuenta.server.modules.user.repository.UserRepository;
 
@@ -24,6 +26,7 @@ public class AccountService {
   private final AccountRepository accountRepository;
   private final UserRepository userRepository;
   private final BankRepository bankRepository;
+  private final CardRepository cardRepository;
 
   /**
    * 회원가입한 사용자의 기본 현금지갑 생성
@@ -126,6 +129,9 @@ public class AccountService {
     }
     if (account.isCash()) {
       throw new ApiException(ErrorCode.CASH_WALLET_NOT_DELETABLE);
+    }
+    if (cardRepository.existsByAccountIdAndStatus(account.getId(), Card.STATUS_ACTIVE)) {
+      throw new ApiException(ErrorCode.ACCOUNT_HAS_CARDS);
     }
     account.setStatus(Account.STATUS_INACTIVE);
   }
