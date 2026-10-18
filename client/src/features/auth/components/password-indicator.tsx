@@ -14,17 +14,17 @@ export default function PasswordIndicator({ value }: PasswordIndicatorProps) {
 
   let strengthText = "";
   let strengthColor = "text-muted-foreground";
-  let barColors = ["bg-[#e8eaf0]", "bg-[#e8eaf0]", "bg-[#e8eaf0]"];
+  let barColors = ["bg-muted", "bg-muted", "bg-muted"];
 
   if (value) {
     if (score <= 1) {
       strengthText = "약함";
       strengthColor = "text-[#e05555]";
-      barColors = ["bg-[#e05555]", "bg-[#e8eaf0]", "bg-[#e8eaf0]"];
+      barColors = ["bg-[#e05555]", "bg-muted", "bg-muted"];
     } else if (score === 2 || score === 3) {
       strengthText = "보통";
       strengthColor = "text-[#f0a500]";
-      barColors = ["bg-[#f0a500]", "bg-[#f0a500]", "bg-[#e8eaf0]"];
+      barColors = ["bg-[#f0a500]", "bg-[#f0a500]", "bg-muted"];
     } else if (score === 4) {
       strengthText = "강함";
       strengthColor = "text-[#27ae60]";
@@ -56,12 +56,12 @@ export default function PasswordIndicator({ value }: PasswordIndicatorProps) {
         {strengthText}
       </div>
 
-      <div className="bg-[#f8f9fc] border border-[#e2e5ef] rounded-lg p-3.5 mt-3 flex flex-col gap-2">
+      <div className="bg-muted/50 border border-border rounded-lg p-3.5 mt-3 flex flex-col gap-2">
         {requirements.map((req, idx) => (
           <div
             key={idx}
             className={`flex items-center gap-2 text-xs transition-colors duration-200 ${
-              req.met ? "text-[#27ae60] font-medium" : "text-[#9aa3b5]"
+              req.met ? "text-[#27ae60] font-medium" : "text-muted-foreground"
             }`}
           >
             {req.met ? (
