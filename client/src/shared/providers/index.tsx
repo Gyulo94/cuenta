@@ -11,7 +11,12 @@ interface ProvidersProps {
 
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      scriptProps={{ type: "application/json" }}
+    >
       <QueryProvider>
         <Router>
           <TooltipProvider>
