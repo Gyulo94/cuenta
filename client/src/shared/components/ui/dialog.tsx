@@ -72,8 +72,7 @@ function DialogContent({
               className="absolute top-2 right-2"
               size="icon-sm"
             >
-              <XIcon
-              />
+              <XIcon />
               <span className="sr-only">Close</span>
             </Button>
           </DialogPrimitive.Close>
@@ -149,6 +148,33 @@ function DialogDescription({
   )
 }
 
+interface ModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description: string
+  children: React.ReactNode
+}
+
+function Modal({
+  open,
+  onOpenChange,
+  title,
+  description,
+  children,
+}: ModalProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        {children}
+      </DialogContent>
+    </Dialog>
+  )
+}
 export {
   Dialog,
   DialogClose,
@@ -160,4 +186,5 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+  Modal,
 }
