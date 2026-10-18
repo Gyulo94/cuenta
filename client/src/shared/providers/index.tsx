@@ -4,6 +4,7 @@ import { BrowserRouter as Router } from "react-router-dom"
 import { ThemeProvider } from "next-themes"
 import { Toaster } from "../components/ui/sonner"
 import { TooltipProvider } from "../components/ui/tooltip"
+import ModalProvider from "./modal-provider"
 
 interface ProvidersProps {
   children: ReactNode
@@ -23,6 +24,7 @@ export default function Providers({ children }: ProvidersProps) {
             {children}
             <Toaster />
           </TooltipProvider>
+          <ModalProvider />
         </Router>
       </QueryProvider>
     </ThemeProvider>
