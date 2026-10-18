@@ -30,6 +30,13 @@ public enum ErrorCode implements ErrorCodeInterface {
 
   // 은행 관련
   BANK_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "해당 은행을 찾을 수 없습니다."),
+
+  // 계좌 관련
+  ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), "해당 계좌를 찾을 수 없습니다."),
+  BANK_REQUIRED(HttpStatus.BAD_REQUEST.value(), "은행을 선택하세요."),
+  CASH_WALLET_NOT_CREATABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 직접 추가할 수 없습니다."),
+  CASH_WALLET_NOT_UPDATABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 수정할 수 없습니다."),
+  CASH_WALLET_NOT_DELETABLE(HttpStatus.BAD_REQUEST.value(), "현금지갑은 삭제할 수 없습니다."),
   ;
 
   private final Integer httpStatusCode;

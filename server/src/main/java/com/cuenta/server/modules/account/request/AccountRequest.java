@@ -22,7 +22,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString
-public class CreateAccountRequest {
+public class AccountRequest {
 
   @NotBlank(message = "name은 필수 입력 값입니다.")
   private String name;
@@ -39,7 +39,7 @@ public class CreateAccountRequest {
   @Pattern(regexp = "^\\d{4}$", message = "계좌번호는 끝 4자리 숫자만 입력해주세요.")
   private String accountNumber;
 
-  public static Account toEntity(CreateAccountRequest accountRequest, Bank bank, User user) {
+  public static Account toEntity(AccountRequest accountRequest, Bank bank, User user) {
     return Account.builder()
         .name(accountRequest.getName())
         .accountType(accountRequest.getAccountType())

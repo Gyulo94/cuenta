@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cuenta.server.modules.account.request.AccountRequest;
 import com.cuenta.server.modules.bank.entity.Bank;
 import com.cuenta.server.modules.user.entity.User;
 
@@ -30,6 +31,10 @@ import lombok.NoArgsConstructor;
 @Table(name = "accounts")
 public class Account {
   public static final String STATUS_ACTIVE = "ACTIVE";
+  public static final String STATUS_INACTIVE = "INACTIVE";
+  public static final String TYPE_ACCOUNT = "ACCOUNT";
+  public static final String TYPE_CASH = "CASH";
+  public static final String CASH_WALLET_NAME = "현금지갑";
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,4 +73,37 @@ public class Account {
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = true)
   private LocalDateTime updatedAt;
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  /**
+   * 사용자의 기본 현금지갑 생성
+   *
+   * @param user 소유 사용자
+   * @return 잔액 0원의 현금지갑
+   */
+  public static Account cashWallet(User user) {
+    return Account.builder()
+        .user(user)
+        .name(CASH_WALLET_NAME)
+        .accountType(TYPE_CASH)
+        .initialBalance(0)
+        .balance(0)
+        .status(STATUS_ACTIVE)
+        .build();
+  }
+
+  public boolean isCash() {
+    return TYPE_CASH.equals(this.accountType);
+  }
+
+  public void update(AccountRequest request, Bank bank) {
+    this.name = request.getName();
+    this.accountNumber = request.getAccountNumber();
+    this.balance += request.getInitialBalance() - this.initialBalance;
+    this.initialBalance = request.getInitialBalance();
+    this.bank = bank;
+  }
 }
