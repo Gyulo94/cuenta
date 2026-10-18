@@ -21,7 +21,7 @@ const buttonVariants = cva(
         muted:
           "border-transparent bg-neutral-200 text-neutral-600 hover:bg-neutral-200/80",
         tertiary:
-          "border-transparent bg-purple-100 text-purple-600 shadow-none hover:bg-purple-200",
+          "border-transparent bg-sub text-sub-foreground shadow-none hover:bg-sub/70",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -30,6 +30,7 @@ const buttonVariants = cva(
         xs: "h-7 rounded-md px-2 text-xs",
         lg: "h-12 rounded-md px-8",
         icon: "size-8",
+        "icon-sm": "size-7",
       },
     },
     defaultVariants: {

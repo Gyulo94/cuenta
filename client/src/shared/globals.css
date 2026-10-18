@@ -13,6 +13,7 @@
 }
 
 @theme inline {
+  --container-content: 75rem;
   --font-pretendard:
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -33,6 +34,8 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-link: var(--link);
+  --color-sub: var(--sub);
+  --color-sub-foreground: var(--sub-foreground);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -79,6 +82,8 @@
   --border: #d8e0ea;
   --input: #cbd5e1;
   --link: #3568a8;
+  --sub: #dfe9ff;
+  --sub-foreground: #26324a;
   --ring: #3568a8;
   --chart-1: #f5c84c;
   --chart-2: #3568a8;
@@ -90,8 +95,8 @@
   --sidebar-foreground: #26324a;
   --sidebar-primary: #f5c84c;
   --sidebar-primary-foreground: #26324a;
-  --sidebar-accent: #d9e6ff;
-  --sidebar-accent-foreground: #26324a;
+  --sidebar-accent: var(--sub);
+  --sidebar-accent-foreground: var(--sub-foreground);
   --sidebar-border: #d8e0ea;
   --sidebar-ring: #3568a8;
 }
@@ -115,18 +120,20 @@
   --border: #334155;
   --input: #3b4b5f;
   --link: #7eb6ff;
+  --sub: rgb(111 162 251 / 18%);
+  --sub-foreground: #aac9ff;
   --ring: #7eb6ff;
   --chart-1: #e8b84b;
   --chart-2: #7eb6ff;
   --chart-3: #94a3b8;
   --chart-4: #8fb996;
   --chart-5: #e08b98;
-  --sidebar: #1b2633;
+  --sidebar: #141e29;
   --sidebar-foreground: #f1f5f9;
   --sidebar-primary: #e8b84b;
   --sidebar-primary-foreground: #101820;
-  --sidebar-accent: #273f59;
-  --sidebar-accent-foreground: #f1f5f9;
+  --sidebar-accent: var(--sub);
+  --sidebar-accent-foreground: var(--sub-foreground);
   --sidebar-border: #334155;
   --sidebar-ring: #7eb6ff;
 }

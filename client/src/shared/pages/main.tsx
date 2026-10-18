@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { Navigate, useNavigate } from "react-router-dom"
 import { useSession } from "@/features/user/query"
 
 export default function MainPage() {
@@ -14,11 +14,7 @@ export default function MainPage() {
 
   if (!session) {
     return null
+  } else {
+    return <Navigate to="/dashboard" replace />
   }
-
-  return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <p>{session.name}</p>
-    </div>
-  )
 }

@@ -1,7 +1,15 @@
-import { LoginPage, RegisterPage, RegisterVerifyPage, ResetPasswordPage, ResetPasswordVerifyPage } from "@/features/auth/pages"
+import {
+  LoginPage,
+  RegisterPage,
+  RegisterVerifyPage,
+  ResetPasswordPage,
+  ResetPasswordVerifyPage,
+} from "@/features/auth/pages"
 import { Route, Routes } from "react-router-dom"
-import { MainPage, NotFoundPage } from "@/shared/pages"
-import PublicRoute from "@/shared/components/public-route"
+import { DashboardPage, MainPage, NotFoundPage } from "@/shared/pages"
+import PublicRoute from "@/shared/routes/public-route"
+import PrivateRoute from "./routes/private-route"
+import AppLayout from "@/shared/layouts/app-layout"
 
 export function App() {
   return (
@@ -16,6 +24,12 @@ export function App() {
           path="reset-password/verify"
           element={<ResetPasswordVerifyPage />}
         />
+      </Route>
+
+      <Route element={<PrivateRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="dashboard" element={<DashboardPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
