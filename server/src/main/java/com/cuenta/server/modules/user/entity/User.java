@@ -37,6 +37,9 @@ public class User {
   @Column(name = "password", nullable = false)
   private String password;
 
+  @Column(name = "image", nullable = true)
+  private String image;
+
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -50,6 +53,10 @@ public class User {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public void setImage(String image) {
+    this.image = image;
   }
 
   public void softDelete() {

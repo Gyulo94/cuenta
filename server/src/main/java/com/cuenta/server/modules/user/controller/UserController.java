@@ -14,9 +14,9 @@ import com.cuenta.server.global.jwt.JwtPayload;
 import com.cuenta.server.modules.user.response.UserResponse;
 import com.cuenta.server.modules.user.service.UserService;
 
-@Tag(name = "User", description = "사용자 API")
+@Tag(name = "Users", description = "사용자 API")
 @RestController
-@RequestMapping("user")
+@RequestMapping("users")
 @RequiredArgsConstructor
 public class UserController {
   private final UserService userService;

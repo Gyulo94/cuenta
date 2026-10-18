@@ -19,6 +19,7 @@ public class UserResponse {
   private long id;
   private String name;
   private String email;
+  private String image;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;
   private LocalDateTime deletedAt;
@@ -29,6 +30,7 @@ public class UserResponse {
         .id(user.getId())
         .name(user.getName())
         .email(user.getEmail())
+        .image(user.getImage())
         .createdAt(user.getCreatedAt())
         .updatedAt(user.getUpdatedAt())
         .deletedAt(user.getDeletedAt())
